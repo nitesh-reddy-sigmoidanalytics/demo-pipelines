@@ -8,16 +8,11 @@ import logging
 from utils.db import read_sql, upsert_dataframe, log_dag_run
 from utils.validators import (validate_required_columns, validate_null_threshold,
                                validate_row_count, validate_no_negatives)
-from utils.alerts import on_failure_callback, on_success_callback
-
 logger = logging.getLogger(__name__)
 
 default_args = {
     'owner': 'data-team',
     'retries': 1,
-    'retry_delay': timedelta(minutes=5),
-    'on_failure_callback': on_failure_callback,
-    'on_success_callback': on_success_callback,
 }
 
 def extract_sales(**context):
