@@ -2,7 +2,7 @@ from airflow import DAG
 from airflow.operators.python import PythonOperator
 from datetime import datetime
 import pandas as pd
-from utils.db import fetch_all, execute_query
+from utils.db import get_conn
 
 
 def extract():
@@ -54,6 +54,24 @@ def load(ti):
             r.revenue,
             r.order_date,
         ))
+
+def execute_query(query, params=None):
+    conn = get_conn()
+    cur = conn.cursor()
+    cur.execute(query, params or ())
+    conn.commit()
+    cur.close()
+    conn.close()
+
+
+def fetch_all(query, params=None):
+    conn = get_conn()
+    cur = conn.cursor()
+    cur.execute(query, params or ())
+    rows = cur.fetchall()
+    cur.close()
+    conn.close()
+    return rows
 
 
 with DAG(

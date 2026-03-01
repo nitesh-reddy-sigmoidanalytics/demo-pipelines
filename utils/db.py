@@ -60,20 +60,3 @@ def upsert_dataframe(df, table, conflict_cols):
 def log_dag_run(dag_id, task_id, status, rows_processed=0):
     print(f"[LOG] {dag_id}.{task_id} — {status} — rows={rows_processed}")
 
-def execute_query(query, params=None):
-    conn = get_conn()
-    cur = conn.cursor()
-    cur.execute(query, params or ())
-    conn.commit()
-    cur.close()
-    conn.close()
-
-
-def fetch_all(query, params=None):
-    conn = get_conn()
-    cur = conn.cursor()
-    cur.execute(query, params or ())
-    rows = cur.fetchall()
-    cur.close()
-    conn.close()
-    return rows
