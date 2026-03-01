@@ -24,7 +24,10 @@ def extract():
 
 
 def transform(ti):
-    df = pd.read_json(ti.xcom_pull())
+    input_data = ti.xcom_pull()
+    if input_data is None:
+        raise ValueError("No data received for transformation.")
+    df = pd.read_json(input_data)
 
     # Keep only delivered orders
     df = df[df["status"] == "DELIVERED"]
@@ -43,7 +46,7 @@ def load(ti):
             INSERT INTO orders_dw
             (order_id, customer_id, product,
              quantity, price, revenue, order_date)
-            VALUES (%s,%s,%s,%s,%s,%s,)
+            VALUES (%s,%s,%s,%s,%s,%s,%s)
             ON CONFLICT (order_id) DO NOTHING
         """, (
             r.order_id,
