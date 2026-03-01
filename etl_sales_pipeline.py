@@ -12,7 +12,6 @@ logger = logging.getLogger(__name__)
 
 default_args = {
     'owner': 'data-team',
-    'retries': 1,
 }
 
 def extract_sales(**context):

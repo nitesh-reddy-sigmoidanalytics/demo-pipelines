@@ -10,7 +10,6 @@ logger = logging.getLogger(__name__)
 
 default_args = {
     "owner": "analytics",
-    "retries": 1,
     "retry_delay": timedelta(minutes=5),
 }
 
