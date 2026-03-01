@@ -102,7 +102,6 @@ def load_revenue(**context):
 with DAG(
     dag_id="customer_revenue_pipeline",
     start_date=datetime(2024, 1, 1),
-    schedule_interval="@daily",
     catchup=False,
     default_args=default_args,
     tags=["analytics", "revenue"],

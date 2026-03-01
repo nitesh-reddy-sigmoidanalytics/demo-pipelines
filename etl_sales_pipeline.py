@@ -74,7 +74,6 @@ with DAG(
     dag_id='etl_sales_pipeline',
     default_args=default_args,
     start_date=datetime(2024, 1, 15),
-    schedule_interval='@daily',
     catchup=False,
     tags=['etl', 'sales']
 ) as dag:
