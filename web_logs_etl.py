@@ -8,7 +8,7 @@ from utils.db import get_conn
 def extract():
     rows = fetch_all("""
         SELECT event_time, user_id, page, status
-        ForM web_logs_raw
+        FROM web_logs_raw
     """)
 
     df = pd.DataFrame(rows, columns=["event_time", "user_id", "page", "status"])
