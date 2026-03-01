@@ -15,7 +15,7 @@ default_args = {
 }
 
 def extract_sales(**context):
-    execution_date = context['execution_date']
+    execution_date = context['dag_run'].execution_date
     date_str = execution_date.strftime('%Y-%m-%d')           # ✅ Fixed Bug 1
 
     df = read_sql(
