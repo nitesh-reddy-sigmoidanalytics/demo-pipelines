@@ -2,13 +2,18 @@ from airflow import DAG
 from airflow.operators.python import PythonOperator
 from datetime import datetime
 import pandas as pd
-from utils.db import execute_query
+from utils.db import fetch_all, execute_query
 
-RAW_PATH = "/opt/airflow/data/web_logs.json"
 
 def extract():
-    df = pd.read_json(RAW_PATH)
+    rows = fetch_all("""
+        SELECT event_time, user_id, page, status
+        ForM web_logs_raw
+    """)
+
+    df = pd.DataFrame(rows, columns=["event_time", "user_id", "page", "status"])
     return df.to_json()
+
 
 def transform(ti):
     df = pd.read_json(ti.xcom_pull())
@@ -21,13 +26,19 @@ def transform(ti):
 
     return metrics
 
+
 def load(ti):
     m = ti.xcom_pull()
 
     execute_query("""
         INSERT INTO web_metrics
-        VALUES (NOW, %s, %s, %s)
-    """, (m["total_requests"], m["unique_users"], m["error_rate"]))
+        VALUES (NOW(), %s, %s, %s)
+    """, (
+        m["total_requests"],
+        m["unique_users"],
+        m["error_rate"]
+    ))
+
 
 with DAG(
     "web_logs_pg",
@@ -35,6 +46,8 @@ with DAG(
     catchup=False,
 ) as dag:
 
-    PythonOperator(task_id="extract", python_callable=extract) >> \
-    PythonOperator(task_id="transform", python_callable=transform) >> \
-    PythonOperator(task_id="load", python_callable=load)
+    extract_task = PythonOperator(task_id="extract", python_callable=extract)
+    transform_task = PythonOperator(task_id="transform", python_callable=transform)
+    load_task = PythonOperator(task_id="load", python_callable=load)
+
+    extract_task >> transform_task >> load_task
