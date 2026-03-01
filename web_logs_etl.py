@@ -32,7 +32,6 @@ def load(ti):
 with DAG(
     "web_logs_pg",
     start_date=datetime(2026, 2, 1),
-    schedule_interval="@weekly",
     catchup=False,
 ) as dag:
 

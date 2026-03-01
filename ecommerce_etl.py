@@ -2,7 +2,7 @@ from airflow import DAG
 from airflow.operators.python import PythonOperator
 from datetime import datetime
 import pandas as pd
-from common.db import execute_query
+from utils.db import execute_query
 
 RAW_PATH = "/opt/airflow/data/orders.csv"
 
@@ -32,7 +32,6 @@ def load(ti):
 with DAG(
     "ecommerce_orders_pg",
     start_date=datetime(2026, 2, 1),
-    schedule_interval="@weekly",
     catchup=False,
 ) as dag:
 
