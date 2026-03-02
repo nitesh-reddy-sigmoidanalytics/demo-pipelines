@@ -17,7 +17,7 @@ default_args = {
 # TASK 1 — Extract Orders
 # ---------------------------------------------------
 def extract_orders(**context):
-    execution_date = context["execution_date"]
+    execution_date = context["ds"]
 
     orders = read_sql(
         """
@@ -25,7 +25,7 @@ def extract_orders(**context):
         FROM raw_orders
         WHERE DATE(order_ts) = %s
         """,
-        params=(execution_date.strftime("%Y-%m-%d"),),
+        params=(execution_date,),
     )
 
     context["ti"].xcom_push(key="orders", value=orders.to_json())
