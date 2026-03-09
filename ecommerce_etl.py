@@ -86,7 +86,6 @@ with DAG(
         "status, calculates revenue per order, and loads into orders_dw data warehouse. "
         "Source: orders_raw. Destination: orders_dw."
     ),
-    schedule_interval="@weekly",         # Daily at 3:00 AM UTC
     start_date=datetime(2026, 2, 1),
     catchup=False,
     max_active_runs=1,

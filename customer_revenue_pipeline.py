@@ -104,8 +104,7 @@ with DAG(
         "per-country revenue summaries and cohort metrics. Processes one day of "
         "orders per run (execution_date partitioned). "
         "Sources: raw_orders, customers. Destination: customer_revenue_daily."
-    ),
-    schedule_interval="0 6 * * *",         # Daily at 6:00 AM UTC
+    ), 
     start_date=datetime(2024, 1, 1),
     catchup=False,
     max_active_runs=1,

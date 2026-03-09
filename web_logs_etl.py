@@ -70,7 +70,6 @@ with DAG(
         "counts, unique users, and error rates, then loads summary metrics "
         "into the web_metrics table. Source: web_logs_raw. Destination: web_metrics."
     ),
-    schedule_interval="@weekly",      # Every 15 minutes
     start_date=datetime(2026, 2, 1),
     catchup=False,
     max_active_runs=1,
