@@ -1,6 +1,6 @@
 from airflow import DAG
 from airflow.operators.python import PythonOperator
-from datetime import datetime
+from datetime import datetime, timedelta
 import pandas as pd
 from utils.db import get_conn
 
@@ -74,25 +74,76 @@ def fetch_all(query, params=None):
     return rows
 
 
+default_args = {
+    "owner": "data-engineering",
+    "depends_on_past": False,
+}
+
 with DAG(
     "ecommerce_orders_pg",
+    description=(
+        "Extracts raw orders from PostgreSQL orders_raw table, filters to DELIVERED "
+        "status, calculates revenue per order, and loads into orders_dw data warehouse. "
+        "Source: orders_raw. Destination: orders_dw."
+    ),
+    schedule_interval="@weekly",         # Daily at 3:00 AM UTC
     start_date=datetime(2026, 2, 1),
     catchup=False,
+    max_active_runs=1,
+    max_active_tasks=3,
+    tags=["ecommerce", "orders", "etl", "postgresql", "daily"],
+    default_args=default_args,
+    params={
+        "source_table": "orders_raw",
+        "destination_table": "orders_dw",
+        "filter_status": "DELIVERED",
+    },
+    doc_md="""
+## Ecommerce Orders ETL
+
+### Purpose
+Full ETL pipeline that moves delivered orders from the raw PostgreSQL table
+into the data warehouse with revenue calculated.
+
+### Schedule
+Runs daily at **03:00 UTC**.
+
+### Pipeline
+| Step      | Task ID   | Description                                      |
+|-----------|-----------|--------------------------------------------------|
+| Extract   | extract   | Reads all rows from `orders_raw`                 |
+| Transform | transform | Filters DELIVERED orders, computes revenue field |
+| Load      | load      | Upserts into `orders_dw` (conflict on order_id)  |
+
+### Source & Destination
+- **Source:** `orders_raw` (PostgreSQL)
+- **Destination:** `orders_dw` (PostgreSQL)
+
+### Owner
+Team: data-engineering | Alerts: data-engineering-alerts@company.com
+
+### Notes
+- Uses XCom to pass DataFrames between tasks as JSON
+- Idempotent load via `ON CONFLICT (order_id) DO NOTHING`
+""",
 ) as dag:
 
     extract_task = PythonOperator(
         task_id="extract",
-        python_callable=extract
+        python_callable=extract,
+        doc_md="Fetches all rows from `orders_raw` and returns as JSON via XCom.",
     )
 
     transform_task = PythonOperator(
         task_id="transform",
-        python_callable=transform
+        python_callable=transform,
+        doc_md="Filters to DELIVERED orders only and calculates `revenue = quantity * price`.",
     )
 
     load_task = PythonOperator(
         task_id="load",
-        python_callable=load
+        python_callable=load,
+        doc_md="Inserts transformed rows into `orders_dw`. Skips duplicates on `order_id`.",
     )
 
     extract_task >> transform_task >> load_task
